@@ -1,6 +1,5 @@
 var express = require('express');
 var bcrypt = require('bcryptjs');
-var jwt = require('jsonwebtoken');
 
 var mdAutenticacion = require('../middlewares/autenticacion');
 
@@ -11,8 +10,13 @@ var Usuario = require('../models/usuario');
 // Obtener todos los usuarios
 app.get('/', (req, res, next) => {
 
+    var desde = req.query.desde || 0; //A partir de donde voy a mostrar y si no viene nada es 0
+    desde = Number(desde); //Tiene que ser un valor numérico
+
     Usuario.find({}, 'nombre email img role') //obtiene solo estos campos de todos los usuarios
-        .exec((err, usuarios) => {
+        .skip(desde) //A partir de donde voy a comenzar a buscar
+        .limit(5) //Cantidad de usuarios que quiero mostrar
+        .exec((err, usuarios) => { //Ejecuta la func de flecha y todo lo que está adentro
             if (err) {
                 return res.status(500).json({
                     ok: false,
@@ -20,13 +24,15 @@ app.get('/', (req, res, next) => {
                     errors: err
                 });
             }
-            res.status(200).json({
-                ok: true,
-                usuarios: usuarios
+            Usuario.countDocuments({}, (err, totalUsuarios) => { //Cuenta el total de usuarios de la colección
+
+                res.status(200).json({
+                    ok: true,
+                    usuarios: usuarios,
+                    total: totalUsuarios
+                });
             });
-
         });
-
 });
 
 // Actualizar usuario
@@ -52,6 +58,7 @@ app.put('/:id', mdAutenticacion.verificaToken, (req, res) => {
         usuario.nombre = body.nombre;
         usuario.email = body.email;
         usuario.role = body.role;
+        usuario.img = body.img;
 
         usuario.save((err, usuarioGuardado) => {
             if (err) { //Si existe un error
