@@ -76,12 +76,26 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
 
     if (tipo === 'usuarios') {
         Usuario.findById(id, (err, usuario) => {
-            var pathViejo = './uploads/usuarios/' + usuario.img; // usuario.img => almacena el nombre de la imagen de ese usuario guardada anteriormente
-            if (fs.existsSync(pathViejo)) { //Si el pathViejo existe
-                fs.unlink(pathViejo); //Elimina el pathViejo junto al archivo existente en ese path
+
+            if (!usuario) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'Usuario no existe',
+                    errors: { message: 'Usuario no existe' }
+                });
             }
+
+            var pathViejo = './uploads/usuarios/' + usuario.img; // usuario.img => almacena el nombre de la imagen de ese usuario guardada anteriormente
+
+            if (fs.existsSync(pathViejo)) { //Si el pathViejo existe
+                fs.unlinkSync(pathViejo); //Elimina el pathViejo junto al archivo existente en ese path de manera síncrona (en este momento no después de manera asíncrona)
+            }
+
             usuario.img = nombreArchivo; //Almaceno el nuevo nombre del archivo en la propiedad img del usuario en cuestión
             usuario.save((err, usuarioActualizado) => {
+
+                usuarioActualizado.password = ':)'; //Muestra :) en vez de la contraseña del usuario en la respuesta
+
                 return res.status(200).json({
                     ok: true,
                     mensaje: 'Imagen de usuario actualizada',
@@ -92,9 +106,61 @@ function subirPorTipo(tipo, id, nombreArchivo, res) {
         });
     }
     if (tipo === 'medicos') {
+        Medico.findById(id, (err, medico) => {
+
+            if (!medico) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El médico no existe',
+                    errors: { message: 'Médico no existe' }
+                });
+            }
+
+            var pathViejo = './uploads/medicos/' + medico.img; // medico.img => almacena el nombre de la imagen de ese médico guardada anteriormente
+
+            if (fs.existsSync(pathViejo)) { //Si el pathViejo existe
+                fs.unlinkSync(pathViejo); //Elimina el pathViejo junto al archivo existente en ese path de manera síncrona (en este momento no después de manera asíncrona)
+            }
+
+            medico.img = nombreArchivo; //Almaceno el nuevo nombre del archivo en la propiedad img del médico en cuestión
+            medico.save((err, medicoActualizado) => {
+                return res.status(200).json({
+                    ok: true,
+                    mensaje: 'Imagen del médico actualizada',
+                    medico: medicoActualizado
+                });
+
+            });
+        });
 
     }
     if (tipo === 'hospitales') {
+        Hospital.findById(id, (err, hospital) => {
+
+            if (!hospital) {
+                return res.status(400).json({
+                    ok: false,
+                    mensaje: 'El hospital no existe',
+                    errors: { message: 'Hospital no existe' }
+                });
+            }
+
+            var pathViejo = './uploads/hospitales/' + hospital.img; // hospital.img => almacena el nombre de la imagen de este hospital guardada anteriormente
+
+            if (fs.existsSync(pathViejo)) { //Si el pathViejo existe
+                fs.unlinkSync(pathViejo); //Elimina el pathViejo junto al archivo existente en ese path de manera síncrona (en este mismo momento no después de manera asíncrona)
+            }
+
+            hospital.img = nombreArchivo; //Almaceno el nuevo nombre del archivo en la propiedad img del hospital en cuestión
+            hospital.save((err, hospitalActualizado) => {
+                return res.status(200).json({
+                    ok: true,
+                    mensaje: 'Imagen del hospital actualizada',
+                    hospital: hospitalActualizado
+                });
+
+            });
+        });
 
     }
 
